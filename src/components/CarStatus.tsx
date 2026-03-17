@@ -4,22 +4,29 @@ interface CarStatusProps {
   car: CarState;
 }
 
-function StatusBar({ label, value, icon, color }: { label: string; value: number; icon: string; color: string }) {
+function StatusBar({ label, value, icon, gradient }: {
+  label: string;
+  value: number;
+  icon: string;
+  gradient: string;
+}) {
+  const barColor = value > 60 ? gradient : value > 30 ? "linear-gradient(90deg, #f59e0b, #ef4444)" : "linear-gradient(90deg, #ef4444, #dc2626)";
+
   return (
     <div className="flex items-center gap-3 w-full">
-      <span className="text-lg w-6 text-center">{icon}</span>
+      <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm"
+        style={{ background: "rgba(255,255,255,0.05)" }}>
+        {icon}
+      </div>
       <div className="flex-1">
         <div className="flex justify-between text-xs mb-1">
-          <span className="opacity-70">{label}</span>
-          <span className="font-medium">{value}%</span>
+          <span style={{ color: "var(--text-secondary)" }}>{label}</span>
+          <span className="font-bold">{Math.round(value)}%</span>
         </div>
-        <div className="h-2.5 rounded-full bg-gray-200 overflow-hidden">
+        <div className="h-2.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
           <div
             className="h-full rounded-full transition-all duration-700 ease-out"
-            style={{
-              width: `${value}%`,
-              backgroundColor: value > 60 ? color : value > 30 ? "#f59e0b" : "#ef4444",
-            }}
+            style={{ width: `${value}%`, background: barColor }}
           />
         </div>
       </div>
@@ -29,32 +36,37 @@ function StatusBar({ label, value, icon, color }: { label: string; value: number
 
 export function CarStatus({ car }: CarStatusProps) {
   return (
-    <div className="w-full max-w-sm mx-auto mt-6 space-y-3 px-2">
-      <StatusBar label="Чистота" value={car.cleanliness} icon="🧽" color="#3b82f6" />
-      <StatusBar label="Топливо" value={car.fuel} icon="⛽" color="#22c55e" />
-      <StatusBar label="Здоровье" value={car.health} icon="❤️" color="#ef4444" />
+    <div className="w-full max-w-sm mx-auto mt-5 space-y-3 px-1">
+      <StatusBar label="Чистота" value={car.cleanliness} icon="🧽" gradient="linear-gradient(90deg, #3b82f6, #6366f1)" />
+      <StatusBar label="Топливо" value={car.fuel} icon="⛽" gradient="linear-gradient(90deg, #22c55e, #06b6d4)" />
+      <StatusBar label="Здоровье" value={car.health} icon="❤️" gradient="linear-gradient(90deg, #ef4444, #ec4899)" />
 
       {/* Alerts */}
-      <div className="space-y-2 mt-3">
-        {car.needsOilChange && (
-          <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-sm">
-            <span>🛢️</span>
-            <span>Пора менять масло</span>
-          </div>
-        )}
-        {car.needsTires && (
-          <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-xl px-3 py-2 text-sm">
-            <span>🔄</span>
-            <span>Сезонная замена шин</span>
-          </div>
-        )}
-        {car.cleanliness < 30 && (
-          <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-3 py-2 text-sm animate-pulse">
-            <span>💧</span>
-            <span>Машина просит мойку!</span>
-          </div>
-        )}
-      </div>
+      {(car.needsOilChange || car.needsTires || car.cleanliness < 30) && (
+        <div className="space-y-2 mt-2">
+          {car.needsOilChange && (
+            <div className="card flex items-center gap-2 px-3 py-2.5 text-sm"
+              style={{ borderColor: "rgba(245,158,11,0.3)" }}>
+              <span>🛢️</span>
+              <span style={{ color: "var(--text-secondary)" }}>Пора менять масло</span>
+            </div>
+          )}
+          {car.needsTires && (
+            <div className="card flex items-center gap-2 px-3 py-2.5 text-sm"
+              style={{ borderColor: "rgba(59,130,246,0.3)" }}>
+              <span>🔄</span>
+              <span style={{ color: "var(--text-secondary)" }}>Замена шин</span>
+            </div>
+          )}
+          {car.cleanliness < 30 && (
+            <div className="card flex items-center gap-2 px-3 py-2.5 text-sm animate-pulse"
+              style={{ borderColor: "rgba(239,68,68,0.3)" }}>
+              <span>💧</span>
+              <span style={{ color: "var(--text-secondary)" }}>Машина просит мойку!</span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
