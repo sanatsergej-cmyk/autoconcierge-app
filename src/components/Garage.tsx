@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { CarState } from "../types";
 
 interface GarageProps {
@@ -5,14 +6,41 @@ interface GarageProps {
   onTapCar: () => void;
 }
 
+// IMAGIN.studio free API for real car renders
+function getCarImageUrl(car: CarState, angle = 23): string {
+  const model = car.model.toLowerCase().replace(/\s+/g, "-");
+  return `https://cdn.imagin.studio/getImage?customer=img&make=${encodeURIComponent(car.brand)}&modelFamily=${encodeURIComponent(model)}&modelYear=${car.year}&angle=${angle}&paintId=pspc0${getColorCode(car.color)}`;
+}
+
+function getColorCode(hex: string): string {
+  const map: Record<string, string> = {
+    "#1a1a2e": "020", // black
+    "#e8e8e8": "085", // white
+    "#a0a0b0": "032", // silver
+    "#c0392b": "071", // red
+    "#2980b9": "048", // blue
+    "#1a3a5c": "093", // dark blue
+    "#27ae60": "056", // green
+    "#6b2d5b": "074", // burgundy
+    "#e67e22": "064", // orange
+    "#f1c40f": "060", // yellow
+    "#5a5a6a": "030", // grey
+    "#c4a574": "023", // beige
+  };
+  return map[hex] ?? "020";
+}
+
 export function Garage({ car, onTapCar }: GarageProps) {
-  const dirtOpacity = Math.max(0, (100 - car.cleanliness) / 100);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  const [floatingCoins, setFloatingCoins] = useState<Array<{ id: number; x: number; y: number }>>([]);
+
   const isHappy = car.mood === "happy";
   const isSad = car.mood === "sad" || car.mood === "angry";
+  const dirtOpacity = Math.max(0, (100 - car.cleanliness) / 100);
+  const daysSinceWash = Math.floor((Date.now() - car.lastWash) / (1000 * 60 * 60 * 24));
 
   const moodEmoji = { happy: "😊", normal: "😐", sad: "😟", angry: "😠" }[car.mood];
-
-  const daysSinceWash = Math.floor((Date.now() - car.lastWash) / (1000 * 60 * 60 * 24));
 
   const speechText = (() => {
     if (car.cleanliness < 20) return "Помой меня!!! 🥺";
@@ -26,10 +54,24 @@ export function Garage({ car, onTapCar }: GarageProps) {
     return `${car.brand} ${car.model} ${moodEmoji}`;
   })();
 
+  const handleTap = (e: React.MouseEvent | React.TouchEvent) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const clientX = "touches" in e ? e.touches[0]!.clientX : (e as React.MouseEvent).clientX;
+    const clientY = "touches" in e ? e.touches[0]!.clientY : (e as React.MouseEvent).clientY;
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
+    setFloatingCoins((prev) => [...prev, { id: Date.now(), x, y }]);
+    setTimeout(() => setFloatingCoins((prev) => prev.slice(1)), 1200);
+    onTapCar();
+  };
+
+  const imageUrl = getCarImageUrl(car);
+
   return (
-    <div className="relative w-full max-w-sm mx-auto" onClick={onTapCar}>
+    <div className="relative w-full max-w-sm mx-auto">
       {/* Speech bubble */}
-      <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-10 card-glow px-4 py-2 text-sm font-medium text-center min-w-[180px] transition-all duration-500"
+      <div className="card-glow px-4 py-2.5 text-sm font-medium text-center mx-auto w-fit min-w-[180px] mb-3 relative"
         style={{ borderRadius: 16 }}>
         {speechText}
         <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45"
@@ -37,134 +79,115 @@ export function Garage({ car, onTapCar }: GarageProps) {
       </div>
 
       {/* Car scene */}
-      <div className="relative mt-14">
+      <div
+        className={`relative cursor-pointer select-none transition-transform duration-300 ${isHappy ? "animate-bounce-gentle" : ""} ${isSad ? "animate-shake" : ""}`}
+        onClick={handleTap}
+      >
         {/* Glow under car */}
         <div
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 w-64 h-16 rounded-full blur-2xl"
-          style={{ background: `${car.color}33` }}
+          className="absolute bottom-2 left-1/2 -translate-x-1/2 w-72 h-20 rounded-full blur-3xl opacity-40"
+          style={{ background: `radial-gradient(ellipse, ${car.color}88, transparent)` }}
         />
 
-        <svg
-          viewBox="0 0 400 220"
-          className={`w-full transition-transform duration-300 cursor-pointer select-none ${isHappy ? "animate-bounce-gentle" : ""} ${isSad ? "animate-shake" : ""}`}
-        >
-          {/* Road surface */}
-          <rect x="0" y="195" width="400" height="25" fill="rgba(255,255,255,0.03)" rx="5" />
-          <line x1="20" y1="207" x2="60" y2="207" stroke="rgba(255,255,255,0.08)" strokeWidth="2" strokeDasharray="4" />
-          <line x1="100" y1="207" x2="180" y2="207" stroke="rgba(255,255,255,0.08)" strokeWidth="2" strokeDasharray="4" />
-          <line x1="220" y1="207" x2="300" y2="207" stroke="rgba(255,255,255,0.08)" strokeWidth="2" strokeDasharray="4" />
-          <line x1="340" y1="207" x2="380" y2="207" stroke="rgba(255,255,255,0.08)" strokeWidth="2" strokeDasharray="4" />
+        {/* Real car image */}
+        {!imgError && (
+          <img
+            src={imageUrl}
+            alt={`${car.brand} ${car.model}`}
+            className={`w-full max-h-[200px] object-contain relative z-10 transition-opacity duration-500 drop-shadow-2xl ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+            onLoad={() => setImgLoaded(true)}
+            onError={() => setImgError(true)}
+            draggable={false}
+          />
+        )}
 
-          {/* Shadow */}
-          <ellipse cx="200" cy="197" rx="150" ry="10" fill="rgba(0,0,0,0.4)" />
+        {/* Fallback SVG if image fails */}
+        {(imgError || !imgLoaded) && (
+          <svg viewBox="0 0 400 200" className={`w-full ${imgLoaded && !imgError ? "hidden" : ""}`} style={{ maxHeight: 180 }}>
+            <ellipse cx="200" cy="185" rx="150" ry="10" fill="rgba(0,0,0,0.3)" />
+            <rect x="45" y="100" width="310" height="65" rx="14" fill={car.color} />
+            <path d="M45,118 L45,100 Q45,87 58,87 L140,87 L140,118 Z" fill={car.color} />
+            <path d="M122,87 L157,40 Q162,33 172,33 L258,33 Q268,33 273,40 L308,87 Z" fill={car.color} />
+            <path d="M162,45 L145,82 L212,82 L212,45 Z" fill="#1a2740" opacity="0.9" />
+            <path d="M222,45 L222,82 L296,82 L278,45 Z" fill="#1a2740" opacity="0.9" />
+            <circle cx="110" cy="168" r="26" fill="#111" />
+            <circle cx="110" cy="168" r="16" fill="#2a2a3a" />
+            <circle cx="290" cy="168" r="26" fill="#111" />
+            <circle cx="290" cy="168" r="16" fill="#2a2a3a" />
+            <rect x="47" y="107" width="22" height="12" rx="5" fill="#FFD700" opacity="0.8" />
+            <rect x="331" y="107" width="22" height="12" rx="5" fill="#FF3333" opacity="0.7" />
+          </svg>
+        )}
 
-          {/* Car body */}
-          <g>
-            {/* Lower body */}
-            <rect x="45" y="110" width="310" height="68" rx="14" fill={car.color} />
-            {/* Hood */}
-            <path d="M45,128 L45,110 Q45,97 58,97 L140,97 L140,128 Z" fill={car.color} />
-            {/* Roof */}
-            <path d="M122,97 L157,47 Q162,40 172,40 L258,40 Q268,40 273,47 L308,97 Z" fill={car.color} />
-            {/* Gloss */}
-            <path d="M122,97 L157,47 Q162,40 172,40 L258,40 Q268,40 273,47 L308,97 Z" fill="url(#carGloss)" opacity="0.4" />
-            {/* Side highlight */}
-            <rect x="50" y="112" width="300" height="3" rx="1.5" fill="rgba(255,255,255,0.1)" />
+        {/* Dirt overlay on image */}
+        {dirtOpacity > 0.15 && imgLoaded && !imgError && (
+          <div className="absolute inset-0 z-20 pointer-events-none"
+            style={{
+              background: `radial-gradient(ellipse at 30% 60%, rgba(90,74,53,${dirtOpacity * 0.3}), transparent 60%),
+                           radial-gradient(ellipse at 70% 50%, rgba(90,74,53,${dirtOpacity * 0.25}), transparent 50%)`,
+            }}
+          />
+        )}
 
-            {/* Windows */}
-            <path d="M162,52 L145,90 L212,90 L212,52 Z" fill="#1a2740" opacity="0.9" />
-            <path d="M222,52 L222,90 L296,90 L278,52 Z" fill="#1a2740" opacity="0.9" />
-            {/* Window glare */}
-            <path d="M167,57 L158,78 L174,78 L179,57 Z" fill="rgba(100,180,255,0.15)" />
-            <path d="M228,57 L228,76 L246,76 L242,57 Z" fill="rgba(100,180,255,0.15)" />
-            {/* Window divider */}
-            <rect x="213" y="45" width="8" height="47" rx="3" fill={car.color} />
-            {/* Mirror */}
-            <ellipse cx="138" cy="92" rx="8" ry="5" fill={car.color} />
+        {/* Sparkles when clean */}
+        {car.cleanliness > 90 && (
+          <div className="absolute inset-0 z-20 pointer-events-none animate-float">
+            <div className="absolute top-4 left-8 text-lg">✨</div>
+            <div className="absolute top-8 right-12 text-sm">✨</div>
+            <div className="absolute bottom-12 left-1/2 text-base">✨</div>
+          </div>
+        )}
 
-            {/* Headlights — glowing */}
-            <rect x="47" y="117" width="24" height="14" rx="6" fill="#FFD700" opacity="0.9" />
-            <rect x="47" y="117" width="24" height="14" rx="6" fill="url(#lightGlow)" />
-            <rect x="329" y="117" width="24" height="14" rx="6" fill="#FF3333" opacity="0.7" />
+        {/* Status indicators */}
+        <div className="absolute top-2 left-0 right-0 z-20 pointer-events-none flex justify-between px-4">
+          {car.fuel < 20 && <span className="text-xl animate-pulse">⛽</span>}
+          {car.fuel >= 20 && <span />}
+          {car.health < 50 && <span className="text-xl animate-pulse">🔧</span>}
+          {car.needsOilChange && car.health >= 50 && <span className="text-lg animate-pulse">🛢️</span>}
+        </div>
 
-            {/* Door handle */}
-            <rect x="230" y="117" width="20" height="4" rx="2" fill="rgba(255,255,255,0.15)" />
+        {/* Floating coins on tap */}
+        {floatingCoins.map((coin) => (
+          <div
+            key={coin.id}
+            className="absolute z-30 pointer-events-none text-sm font-bold"
+            style={{
+              left: coin.x,
+              top: coin.y,
+              color: "#f59e0b",
+              animation: "float-up 1.2s ease-out forwards",
+            }}
+          >
+            +🪙
+          </div>
+        ))}
+      </div>
 
-            {/* Bumpers */}
-            <rect x="35" y="163" width="75" height="10" rx="5" fill="rgba(255,255,255,0.05)" />
-            <rect x="290" y="163" width="75" height="10" rx="5" fill="rgba(255,255,255,0.05)" />
-          </g>
-
-          {/* Wheels */}
-          <g>
-            {[110, 290].map((cx) => (
-              <g key={cx}>
-                <circle cx={cx} cy="178" r="30" fill="#111" />
-                <circle cx={cx} cy="178" r="22" fill="#2a2a3a" />
-                <circle cx={cx} cy="178" r="7" fill="#444" />
-                {[0, 72, 144, 216, 288].map((angle) => (
-                  <line
-                    key={`${cx}-${angle}`}
-                    x1={cx + 8 * Math.cos((angle * Math.PI) / 180)}
-                    y1={178 + 8 * Math.sin((angle * Math.PI) / 180)}
-                    x2={cx + 20 * Math.cos((angle * Math.PI) / 180)}
-                    y2={178 + 20 * Math.sin((angle * Math.PI) / 180)}
-                    stroke="#555"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                  />
-                ))}
-              </g>
-            ))}
-          </g>
-
-          {/* Dirt */}
-          {dirtOpacity > 0.1 && (
-            <g opacity={dirtOpacity * 0.8}>
-              {[[80,140,10],[155,155,14],[255,137,12],[322,150,11],[185,168,9],[105,122,8],[345,130,7],[60,158,7],[275,165,8]].map(
-                ([cx, cy, r], i) => (
-                  <circle key={i} cx={cx} cy={cy} r={r! * (0.5 + dirtOpacity * 0.5)} fill="#5a4a35" opacity={0.3 + dirtOpacity * 0.4} />
-                ),
-              )}
-            </g>
-          )}
-
-          {/* Sparkle when clean */}
-          {car.cleanliness > 90 && (
-            <g className="animate-float">
-              <text x="55" y="75" fontSize="16" opacity="0.8">✨</text>
-              <text x="325" y="65" fontSize="13" opacity="0.6">✨</text>
-              <text x="195" y="28" fontSize="14" opacity="0.7">✨</text>
-            </g>
-          )}
-
-          {/* Status indicators */}
-          {car.fuel < 20 && <text x="45" y="88" fontSize="20" className="animate-pulse">⛽</text>}
-          {car.health < 50 && <text x="340" y="75" fontSize="20" className="animate-pulse">🔧</text>}
-          {car.needsOilChange && <text x="188" y="22" fontSize="16" className="animate-pulse">🛢️</text>}
-
-          <defs>
-            <linearGradient id="carGloss" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="white" stopOpacity="0.5" />
-              <stop offset="100%" stopColor="white" stopOpacity="0" />
-            </linearGradient>
-            <radialGradient id="lightGlow">
-              <stop offset="0%" stopColor="#FFD700" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#FFD700" stopOpacity="0" />
-            </radialGradient>
-          </defs>
-        </svg>
+      {/* Road */}
+      <div className="w-full h-2 rounded-full mt-1" style={{ background: "rgba(255,255,255,0.03)" }}>
+        <div className="flex justify-around items-center h-full px-6">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="w-6 h-0.5 rounded" style={{ background: "rgba(255,255,255,0.06)" }} />
+          ))}
+        </div>
       </div>
 
       {/* Info */}
-      <div className="text-center mt-1 space-y-0.5">
+      <div className="text-center mt-3 space-y-0.5">
         <div className="text-base font-bold">{car.brand} {car.model} {car.year}</div>
         <div className="text-xs" style={{ color: "var(--text-muted)" }}>
           {car.mileage.toLocaleString()} км
           {daysSinceWash > 0 && ` · мойка ${daysSinceWash} дн. назад`}
         </div>
-        <div className="text-[10px]" style={{ color: "var(--text-muted)", opacity: 0.5 }}>нажми — сменить цвет</div>
+        <div className="text-[10px]" style={{ color: "var(--text-muted)", opacity: 0.4 }}>нажми — сменить цвет</div>
       </div>
+
+      <style>{`
+        @keyframes float-up {
+          0% { transform: translateY(0) scale(1); opacity: 1; }
+          100% { transform: translateY(-60px) scale(1.5); opacity: 0; }
+        }
+      `}</style>
     </div>
   );
 }
