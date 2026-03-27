@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* ===== ORIGINAL GAME THEME ===== */
 :root {
   --bg-primary: #0f0f1a;
   --bg-secondary: #1a1a2e;
@@ -19,6 +20,20 @@
   --gradient-green: linear-gradient(135deg, #22c55e 0%, #06b6d4 100%);
 }
 
+/* ===== CRM THEME (Tailwind) ===== */
+@theme {
+  --color-primary: #CCFF00;
+  --color-vantablack: #09090B;
+  --color-asphalt: #18181B;
+  --color-gunmetal: #27272A;
+  --color-bleached: #FAFAFA;
+  --color-steel: #A1A1AA;
+  --color-alert: #FF4500;
+  --color-stock-green: #4ade80;
+  --color-stock-green-bg: #1a2e1a;
+  --color-stock-green-border: #2e5e2e;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -36,9 +51,18 @@ body {
   box-sizing: border-box;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 0; height: 0; }
+input, textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
 
+/* Scrollbar - hidden for game, visible in CRM */
+::-webkit-scrollbar { width: 0; height: 0; }
+.crm-mode ::-webkit-scrollbar { width: 8px; }
+.crm-mode ::-webkit-scrollbar-track { background: #09090B; }
+.crm-mode ::-webkit-scrollbar-thumb { background: #27272A; border: 1px solid #18181B; }
+
+/* ===== GAME ANIMATIONS ===== */
 @keyframes bounce-gentle {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
@@ -88,6 +112,11 @@ body {
   100% { transform: scale(1) rotate(360deg); opacity: 1; }
 }
 
+@keyframes neon-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
 .animate-bounce-gentle { animation: bounce-gentle 2.5s ease-in-out infinite; }
 .animate-shake { animation: shake 0.6s ease-in-out infinite; }
 .animate-fade-in { animation: fade-in 0.3s ease-out; }
@@ -96,6 +125,7 @@ body {
 .animate-glow-pulse { animation: glow-pulse 2s ease-in-out infinite; }
 .animate-float { animation: float 3s ease-in-out infinite; }
 .animate-coin-pop { animation: coin-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+.animate-neon-pulse { animation: neon-pulse 2s ease-in-out infinite; }
 
 .shimmer {
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
@@ -120,4 +150,26 @@ body {
   border: 1px solid rgba(74, 158, 255, 0.2);
   border-radius: 16px;
   box-shadow: 0 0 15px rgba(74, 158, 255, 0.1);
+}
+
+/* ===== CRM-ONLY STYLES ===== */
+.crm-mode {
+  background: #09090B;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.crm-mode * {
+  border-radius: 0 !important;
+}
+
+.font-mono { font-family: 'JetBrains Mono', monospace; }
+
+.offset-shadow { box-shadow: 4px 4px 0px #CCFF00; }
+.offset-shadow-alert { box-shadow: 4px 4px 0px #FF4500; }
+.offset-shadow-white { box-shadow: 4px 4px 0px #FAFAFA; }
+
+.shimmer-green {
+  background: linear-gradient(90deg, transparent, rgba(204,255,0,0.1), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
 }

@@ -10,8 +10,9 @@ import { AchievementPopup } from "./components/AchievementPopup";
 import { AchievementsPanel } from "./components/AchievementsPanel";
 import { ColorPicker } from "./components/ColorPicker";
 import { EventLog } from "./components/EventLog";
+import { CrmPanel } from "./components/CrmPanel";
 
-type Tab = "garage" | "tasks" | "achievements" | "log";
+type Tab = "garage" | "tasks" | "achievements" | "log" | "sto";
 
 export default function App() {
   const {
@@ -47,7 +48,39 @@ export default function App() {
     { id: "tasks" as const, icon: "📋", label: "Задания" },
     { id: "achievements" as const, icon: "🏆", label: "Бейджи" },
     { id: "log" as const, icon: "📜", label: "Лог" },
+    { id: "sto" as const, icon: "🔧", label: "СТО" },
   ];
+
+  // CRM mode — full takeover with its own layout
+  if (tab === "sto") {
+    return (
+      <div className="crm-mode min-h-screen flex flex-col">
+        <CrmPanel />
+        {/* Back to game nav */}
+        <div
+          className="fixed bottom-0 left-0 right-0 z-50 flex gap-1 px-3 py-2"
+          style={{ background: "#09090B", borderTop: "2px solid #27272A" }}
+        >
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className="flex-1 py-2 text-xs font-semibold transition-all"
+              style={
+                tab === t.id
+                  ? { color: "#CCFF00", background: "rgba(204,255,0,0.1)", border: "1px solid rgba(204,255,0,0.3)" }
+                  : { color: "#A1A1AA", background: "rgba(255,255,255,0.03)", border: "1px solid transparent" }
+              }
+            >
+              <span className="text-base">{t.icon}</span>
+              <br />
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "var(--bg-primary)" }}>
