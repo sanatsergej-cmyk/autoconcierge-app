@@ -9,10 +9,10 @@ import { EventPopup } from "./components/EventPopup";
 import { AchievementPopup } from "./components/AchievementPopup";
 import { AchievementsPanel } from "./components/AchievementsPanel";
 import { ColorPicker } from "./components/ColorPicker";
-import { EventLog } from "./components/EventLog";
+import { ReferralPanel } from "./components/ReferralPanel";
 import { CrmPanel } from "./components/CrmPanel";
 
-type Tab = "garage" | "tasks" | "achievements" | "log" | "sto";
+type Tab = "garage" | "tasks" | "achievements" | "referral" | "sto";
 
 export default function App() {
   const {
@@ -47,7 +47,7 @@ export default function App() {
     { id: "garage" as const, icon: "🏠", label: "Гараж" },
     { id: "tasks" as const, icon: "📋", label: "Задания" },
     { id: "achievements" as const, icon: "🏆", label: "Бейджи" },
-    { id: "log" as const, icon: "📜", label: "Лог" },
+    { id: "referral" as const, icon: "🎁", label: "Друзья" },
     { id: "sto" as const, icon: "🔧", label: "СТО" },
   ];
 
@@ -127,7 +127,7 @@ export default function App() {
         )}
         {tab === "tasks" && <DailyTasks tasks={state.dailyTasks} streak={state.streak} />}
         {tab === "achievements" && <AchievementsPanel achievements={state.achievements} />}
-        {tab === "log" && <EventLog events={state.events} />}
+        {tab === "referral" && <ReferralPanel coins={state.coins} />}
       </div>
 
       {/* Popups */}

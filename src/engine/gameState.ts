@@ -91,14 +91,17 @@ function generateDailyTasks(): DailyTask[] {
     { id: "service_daily", icon: "🔧", title: "Пройди сервис", reward: { coins: 150, xp: 30 }, completed: false, action: "service" },
     { id: "login_daily", icon: "👋", title: "Зайди в гараж", reward: { coins: 50, xp: 10 }, completed: false, action: "login" },
     { id: "check_status", icon: "📊", title: "Проверь состояние", reward: { coins: 60, xp: 10 }, completed: false, action: "check" },
+    { id: "invite_friend", icon: "👥", title: "Пригласи друга", reward: { coins: 200, xp: 50 }, completed: false, action: "referral" },
   ];
 
-  // Pick 3 random tasks
-  const shuffled = allTasks.sort(() => Math.random() - 0.5);
-  // Always include login
+  // Pick 3 random tasks + always login + always referral
   const loginTask = allTasks.find((t) => t.id === "login_daily")!;
-  const others = shuffled.filter((t) => t.id !== "login_daily").slice(0, 2);
-  return [{ ...loginTask }, ...others.map((t) => ({ ...t }))];
+  const referralTask = allTasks.find((t) => t.id === "invite_friend")!;
+  const others = allTasks
+    .filter((t) => t.id !== "login_daily" && t.id !== "invite_friend")
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 2);
+  return [{ ...loginTask }, ...others.map((t) => ({ ...t })), { ...referralTask }];
 }
 
 export function createInitialState(): GameState {
