@@ -10,9 +10,10 @@ import { AchievementPopup } from "./components/AchievementPopup";
 import { AchievementsPanel } from "./components/AchievementsPanel";
 import { ColorPicker } from "./components/ColorPicker";
 import { ReferralPanel } from "./components/ReferralPanel";
+import { OrderTracker } from "./components/OrderTracker";
 import { CrmPanel } from "./components/CrmPanel";
 
-type Tab = "garage" | "tasks" | "achievements" | "referral" | "sto";
+type Tab = "garage" | "tasks" | "achievements" | "referral" | "orders" | "sto";
 
 export default function App() {
   const {
@@ -48,6 +49,7 @@ export default function App() {
     { id: "tasks" as const, icon: "📋", label: "Задания" },
     { id: "achievements" as const, icon: "🏆", label: "Бейджи" },
     { id: "referral" as const, icon: "🎁", label: "Друзья" },
+    { id: "orders" as const, icon: "📍", label: "Заказы" },
     { id: "sto" as const, icon: "🔧", label: "СТО" },
   ];
 
@@ -128,6 +130,7 @@ export default function App() {
         {tab === "tasks" && <DailyTasks tasks={state.dailyTasks} streak={state.streak} />}
         {tab === "achievements" && <AchievementsPanel achievements={state.achievements} />}
         {tab === "referral" && <ReferralPanel coins={state.coins} />}
+        {tab === "orders" && <OrderTracker />}
       </div>
 
       {/* Popups */}

@@ -1,4 +1,4 @@
-import type { Job, PartItem, ClientData } from '../types';
+import type { Job, PartItem, ClientData, ClientOrder, PartsOrder } from '../types';
 
 export const MOCK_JOBS: Job[] = [
   {
@@ -75,3 +75,124 @@ export const MOCK_CLIENTS: ClientData[] = [
 ];
 
 export const PART_CATEGORIES = ['ВСЕ', 'МАСЛА', 'ФИЛЬТРЫ', 'ТОРМОЗА', 'ЭЛЕКТРИКА'];
+
+/* ===== CLIENT ORDER TRACKER (for game mini-app) ===== */
+export const MOCK_CLIENT_ORDERS: ClientOrder[] = [
+  {
+    id: 'ORD-001',
+    vehicle: 'KIA SORENTO / 2019',
+    plate: 'А 123 АА 82',
+    service: 'Замена тормозных колодок + диски',
+    estimatedReady: '28 марта',
+    steps: [
+      { label: 'Принят на СТО', detail: 'Бокс 01, мастер Алексей', date: '25 мар, 08:30', status: 'done' },
+      { label: 'Диагностика', detail: 'Износ колодок 90%, диски — проточка невозможна', date: '25 мар, 09:15', status: 'done' },
+      { label: 'Разобрали, нужны детали', detail: 'Колодки TRW + диски BREMBO', date: '25 мар, 11:00', status: 'done' },
+      { label: 'Запчасти в пути', detail: 'Москва → Симферополь, СДЭК', date: 'отпр. 25 мар, ~27 мар', status: 'active' },
+      { label: 'Сборка', status: 'pending' },
+      { label: 'Проверка и тест', status: 'pending' },
+      { label: 'Готов к выдаче', status: 'pending' },
+    ],
+  },
+  {
+    id: 'ORD-002',
+    vehicle: 'BMW X5 / 2018',
+    plate: 'Е 012 ЕЕ 82',
+    service: 'Компьютерная диагностика + ремонт',
+    estimatedReady: '26 марта',
+    steps: [
+      { label: 'Принят на СТО', detail: 'Бокс 02, мастер Дмитрий', date: '25 мар, 09:00', status: 'done' },
+      { label: 'Компьютерная диагностика', detail: 'Ошибки: P0171, P0174 — бедная смесь', date: '25 мар, 10:30', status: 'done' },
+      { label: 'Замена датчика MAF', detail: 'Запчасть в наличии на складе', date: '25 мар, 12:00', status: 'active' },
+      { label: 'Тестовая поездка', status: 'pending' },
+      { label: 'Готов к выдаче', status: 'pending' },
+    ],
+  },
+];
+
+/* ===== PARTS ORDERS (for CRM procurement dashboard) ===== */
+export const MOCK_PARTS_ORDERS: PartsOrder[] = [
+  {
+    id: 'PO-2401',
+    partName: 'Тормозные колодки TRW GDB1550',
+    sku: 'BRK-C-774',
+    supplier: 'VIVAT Auto',
+    forVehicle: 'KIA SORENTO 2019',
+    forJob: 'ORD-001',
+    qty: 2,
+    price: 4200,
+    status: 'in_transit',
+    origin: 'Москва',
+    destination: 'Симферополь',
+    eta: '27 марта',
+    trackingSteps: [
+      { label: 'Заказ размещён', date: '25 мар, 11:20', status: 'done' },
+      { label: 'Подтверждён поставщиком', date: '25 мар, 11:45', status: 'done' },
+      { label: 'Отправлен со склада', detail: 'Москва, склад VIVAT', date: '25 мар, 16:00', status: 'done' },
+      { label: 'В пути', detail: 'СДЭК, трек: 1234567890', status: 'active' },
+      { label: 'Доставлен на СТО', status: 'pending' },
+    ],
+  },
+  {
+    id: 'PO-2402',
+    partName: 'Тормозной диск BREMBO 09.A820.11',
+    sku: 'BRK-D-820',
+    supplier: 'Exist.ru',
+    forVehicle: 'KIA SORENTO 2019',
+    forJob: 'ORD-001',
+    qty: 2,
+    price: 8900,
+    status: 'in_transit',
+    origin: 'Санкт-Петербург',
+    destination: 'Симферополь',
+    eta: '28 марта',
+    trackingSteps: [
+      { label: 'Заказ размещён', date: '25 мар, 11:25', status: 'done' },
+      { label: 'Подтверждён поставщиком', date: '25 мар, 14:00', status: 'done' },
+      { label: 'Отправлен со склада', detail: 'СПб, склад Exist', date: '26 мар, 09:00', status: 'active' },
+      { label: 'В пути', status: 'pending' },
+      { label: 'Доставлен на СТО', status: 'pending' },
+    ],
+  },
+  {
+    id: 'PO-2403',
+    partName: 'Фильтр масляный MANN W 712/95',
+    sku: 'FLT-O-992',
+    supplier: 'VIVAT Auto',
+    forVehicle: 'Пополнение склада',
+    forJob: '-',
+    qty: 10,
+    price: 650,
+    status: 'confirmed',
+    origin: 'Краснодар',
+    destination: 'Симферополь',
+    eta: '29 марта',
+    trackingSteps: [
+      { label: 'Заказ размещён', date: '25 мар, 15:00', status: 'done' },
+      { label: 'Подтверждён поставщиком', date: '26 мар, 10:00', status: 'active' },
+      { label: 'Отправлен со склада', status: 'pending' },
+      { label: 'В пути', status: 'pending' },
+      { label: 'Доставлен на СТО', status: 'pending' },
+    ],
+  },
+  {
+    id: 'PO-2400',
+    partName: 'Свечи зажигания NGK BKR6EIX (x4)',
+    sku: 'SPK-N-441',
+    supplier: 'Autodoc',
+    forVehicle: 'FORD MUSTANG 2020',
+    forJob: 'ORD-003',
+    qty: 1,
+    price: 2100,
+    status: 'delivered',
+    origin: 'Ростов-на-Дону',
+    destination: 'Симферополь',
+    trackingSteps: [
+      { label: 'Заказ размещён', date: '23 мар, 09:00', status: 'done' },
+      { label: 'Подтверждён', date: '23 мар, 09:30', status: 'done' },
+      { label: 'Отправлен', date: '23 мар, 14:00', status: 'done' },
+      { label: 'В пути', date: '23–24 мар', status: 'done' },
+      { label: 'Доставлен на СТО', date: '24 мар, 16:20', status: 'done' },
+    ],
+  },
+];

@@ -15,7 +15,7 @@ export interface CarState {
 }
 
 /* ===== CRM TYPES ===== */
-export type CrmScreen = 'schedule' | 'clients' | 'parts';
+export type CrmScreen = 'schedule' | 'clients' | 'parts' | 'orders';
 export type JobStatus = 'waiting' | 'in_progress' | 'diagnostics' | 'ready' | 'paid';
 
 export interface Job {
@@ -66,6 +66,43 @@ export const JOB_STATUS_CONFIG: Record<JobStatus, { label: string; color: string
   ready: { label: 'ГОТОВ', color: 'text-stock-green' },
   paid: { label: 'ОПЛАЧЕН', color: 'text-bleached' },
 };
+
+/* ===== ORDER TRACKER TYPES ===== */
+export type OrderStepStatus = 'done' | 'active' | 'pending';
+
+export interface OrderStep {
+  label: string;
+  detail?: string;
+  date?: string;
+  status: OrderStepStatus;
+}
+
+export interface ClientOrder {
+  id: string;
+  vehicle: string;
+  plate: string;
+  service: string;
+  steps: OrderStep[];
+  estimatedReady?: string;
+}
+
+export type PartsOrderStatus = 'placed' | 'confirmed' | 'shipped' | 'in_transit' | 'delivered';
+
+export interface PartsOrder {
+  id: string;
+  partName: string;
+  sku: string;
+  supplier: string;
+  forVehicle: string;
+  forJob: string;
+  qty: number;
+  price: number;
+  status: PartsOrderStatus;
+  origin: string;
+  destination: string;
+  eta?: string;
+  trackingSteps: OrderStep[];
+}
 
 /* ===== TELEGRAM TYPES ===== */
 declare global {
