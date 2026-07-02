@@ -157,7 +157,7 @@ export function processLogin(state: GameState): GameState {
 const RANDOM_EVENTS: Omit<GameEvent, "id" | "timestamp">[] = [
   { icon: "🚚", title: "Бензовоз в пути!", description: "Кто-то из чата написал — везут топливо в сторону Симферополя", coins: 20, xp: 10 },
   { icon: "☀️", title: "Хороший день", description: "Сегодня меньше очередей, чем обычно", coins: 30, xp: 10 },
-  { icon: "🎁", title: "Бонус от АвтоКонсьерж!", description: "Спасибо, что помогаете держать карту актуальной", coins: 100, xp: 25 },
+  { icon: "🎁", title: "Бонус от КрымСервис!", description: "Спасибо, что помогаете держать карту актуальной", coins: 100, xp: 25 },
   { icon: "💧", title: "Привет от Тавриды", description: "Не забудьте пить воду в очереди", coins: 20, xp: 5 },
 ];
 

@@ -33,7 +33,7 @@ export function ReferralPanel() {
   const handleShare = useCallback(() => {
     if (!referralLink) return;
     window.Telegram?.WebApp?.HapticFeedback?.impactOccurred("medium");
-    const text = `🚗 Присоединяйся к АвтоКонсьерж! Карта топлива в Крыму и бонусы за активность.\n\n${referralLink}`;
+    const text = `⛽ Присоединяйся к КрымСервис! Карта топлива в Крыму и бонусы за активность.\n\n${referralLink}`;
     const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`;
     window.open(shareUrl, "_blank");
   }, [referralLink]);

@@ -12,8 +12,9 @@ import { RaffleStub } from "./components/RaffleStub";
 import { FuelExchangeStub } from "./components/FuelExchangeStub";
 import { ContentStub } from "./components/ContentStub";
 import { CodeScanner } from "./components/CodeScanner";
+import { AboutTab } from "./components/AboutTab";
 
-type Tab = "map" | "scan" | "tasks" | "achievements" | "referral" | "raffle" | "exchange" | "content";
+type Tab = "map" | "scan" | "tasks" | "achievements" | "referral" | "raffle" | "exchange" | "content" | "about";
 
 export default function App() {
   const {
@@ -47,6 +48,7 @@ export default function App() {
     { id: "raffle" as const, icon: "💧", label: "Розыгрыш" },
     { id: "exchange" as const, icon: "🔁", label: "Биржа" },
     { id: "content" as const, icon: "🎥", label: "Контент" },
+    { id: "about" as const, icon: "ℹ️", label: "О нас" },
   ];
 
   // Реальный баланс с бэкенда — источник правды, пока не подгрузился, показываем
@@ -57,29 +59,37 @@ export default function App() {
     <div className="min-h-screen flex flex-col" style={{ background: "var(--bg-primary)" }}>
       <ProfileBar xp={state.xp} level={state.level} coins={displayedCoins} streak={state.streak} />
 
-      {/* Bottom nav tabs */}
-      <div className="flex gap-1 px-3 mt-1 mb-2 overflow-x-auto">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`
-              flex-1 py-2.5 rounded-2xl text-xs font-semibold transition-all duration-300 shrink-0
-              ${tab === t.id ? "text-white shadow-lg" : "text-gray-500 hover:text-gray-400"}
-            `}
-            style={tab === t.id ? {
-              background: "linear-gradient(135deg, rgba(74,158,255,0.2), rgba(139,92,246,0.2))",
-              border: "1px solid rgba(74,158,255,0.3)",
-            } : {
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid transparent",
-            }}
-          >
-            <span className="text-base">{t.icon}</span>
-            <br />
-            {t.label}
-          </button>
-        ))}
+      {/* Bottom nav tabs — горизонтальный скролл с чёткой шириной под каждую вкладку,
+          чтобы обрезанная последняя кнопка читалась как «свайпни дальше», а не как баг */}
+      <div className="relative mt-1 mb-2">
+        <div className="flex gap-1.5 px-3 overflow-x-auto no-scrollbar">
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`
+                shrink-0 w-[64px] py-2 rounded-2xl text-[11px] font-semibold transition-all duration-300
+                ${tab === t.id ? "text-white shadow-lg" : "text-gray-500 hover:text-gray-400"}
+              `}
+              style={tab === t.id ? {
+                background: "linear-gradient(135deg, rgba(74,158,255,0.2), rgba(139,92,246,0.2))",
+                border: "1px solid rgba(74,158,255,0.3)",
+              } : {
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid transparent",
+              }}
+            >
+              <span className="text-base">{t.icon}</span>
+              <br />
+              {t.label}
+            </button>
+          ))}
+        </div>
+        {/* лёгкая тень справа — подсказка, что список скроллится */}
+        <div
+          className="pointer-events-none absolute right-0 top-0 bottom-0 w-6"
+          style={{ background: "linear-gradient(90deg, transparent, var(--bg-primary))" }}
+        />
       </div>
 
       {/* Content */}
@@ -97,6 +107,7 @@ export default function App() {
         )}
         {tab === "exchange" && <FuelExchangeStub />}
         {tab === "content" && <ContentStub />}
+        {tab === "about" && <AboutTab />}
       </div>
 
       {/* Popups */}
