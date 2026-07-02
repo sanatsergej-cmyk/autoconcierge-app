@@ -5,7 +5,6 @@ import {
   loadState,
   saveState,
   processLogin,
-  processDegradation,
   maybeGenerateEvent,
   checkAchievements,
   calculateLevel,
@@ -31,8 +30,7 @@ export function useGame() {
   const [state, setState] = useState<GameState>(() => {
     const saved = loadState();
     if (saved) {
-      let s = processDegradation(saved);
-      s = processLogin(s);
+      let s = processLogin(saved);
       s = maybeGenerateEvent(s);
       s = checkAchievements(s);
       return s;
@@ -79,24 +77,11 @@ export function useGame() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Degradation timer (every 5 min while open)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setState((s) => {
-        let updated = processDegradation(s);
-        updated = checkAchievements(updated);
-        return updated;
-      });
-    }, 5 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
-
   const doAction = useCallback(
     (action: string, modifier: (s: GameState) => GameState) => {
       setState((s) => {
         let updated = modifier(s);
 
-        // Complete daily task
         updated = {
           ...updated,
           dailyTasks: updated.dailyTasks.map((t) =>
@@ -106,7 +91,6 @@ export function useGame() {
           ),
         };
 
-        // Award daily task bonus
         const justCompleted = updated.dailyTasks.find(
           (t) => t.action === action && t.completed,
         );
@@ -127,64 +111,35 @@ export function useGame() {
     [],
   );
 
-  const wash = useCallback(() => {
+  /** Вызывается после успешной отметки статуса заправки на карте (реальный API-запрос
+   * уже сделан компонентом карты — здесь только начисление игровых очков). */
+  const reportStation = useCallback(() => {
     haptic("medium");
-    doAction("wash", (s) => ({
+    doAction("report", (s) => ({
       ...s,
-      car: { ...s.car, cleanliness: 100, mood: "happy", lastWash: Date.now() },
-      coins: s.coins + 50,
-      xp: s.xp + 15,
-      totalWashes: s.totalWashes + 1,
-    }));
-  }, [doAction]);
-
-  const fuel = useCallback(() => {
-    haptic("medium");
-    doAction("fuel", (s) => ({
-      ...s,
-      car: { ...s.car, fuel: 100, mood: "happy" },
       coins: s.coins + 30,
       xp: s.xp + 10,
-      totalFuels: s.totalFuels + 1,
+      totalReports: s.totalReports + 1,
     }));
   }, [doAction]);
 
-  const service = useCallback(() => {
-    haptic("heavy");
-    doAction("service", (s) => ({
-      ...s,
-      car: { ...s.car, health: 100, needsOilChange: false, mood: "happy" },
-      coins: s.coins + 100,
-      xp: s.xp + 30,
-      totalServices: s.totalServices + 1,
-    }));
-  }, [doAction]);
-
-  const tires = useCallback(() => {
-    haptic("heavy");
-    doAction("tires", (s) => ({
-      ...s,
-      car: { ...s.car, needsTires: false, mood: "happy" },
-      coins: s.coins + 75,
-      xp: s.xp + 20,
-      totalTires: s.totalTires + 1,
-    }));
-  }, [doAction]);
-
-  const checkStatus = useCallback(() => {
+  /** Отметка "подписался на канал" — пока это доверительная самоотметка (заглушка
+   * условия розыгрыша), реальную проверку подписки сделает бот через getChatMember
+   * в следующей фазе. */
+  const markSubscribed = useCallback(() => {
     haptic("light");
-    doAction("check", (s) => ({
-      ...s,
-      xp: s.xp + 5,
-    }));
+    doAction("subscribe", (s) => ({ ...s }));
   }, [doAction]);
 
-  const setCarColor = useCallback((color: string) => {
-    setState((s) => ({
+  const markReferral = useCallback(() => {
+    haptic("medium");
+    doAction("referral", (s) => ({
       ...s,
-      car: { ...s.car, color },
+      coins: s.coins + 200,
+      xp: s.xp + 50,
+      totalReferrals: s.totalReferrals + 1,
     }));
-  }, []);
+  }, [doAction]);
 
   const dismissEvent = useCallback(() => {
     setPendingEvent(null);
@@ -194,12 +149,9 @@ export function useGame() {
     state,
     pendingEvent,
     newAchievement,
-    wash,
-    fuel,
-    service,
-    tires,
-    checkStatus,
-    setCarColor,
+    reportStation,
+    markSubscribed,
+    markReferral,
     dismissEvent,
   };
 }

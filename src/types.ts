@@ -1,107 +1,21 @@
-/* ===== GAME TYPES ===== */
-export interface CarState {
-  brand: string;
-  model: string;
-  year: number;
-  color: string;
-  cleanliness: number; // 0-100
-  fuel: number; // 0-100
-  health: number; // 0-100
-  mood: "happy" | "normal" | "sad" | "angry";
-  lastWash: number; // timestamp
-  mileage: number;
-  needsOilChange: boolean;
-  needsTires: boolean;
-}
+/* ===== FUEL MAP TYPES ===== */
+export type FuelStatus = "green" | "yellow" | "red" | null;
 
-/* ===== CRM TYPES ===== */
-export type CrmScreen = 'schedule' | 'clients' | 'parts' | 'orders';
-export type JobStatus = 'waiting' | 'in_progress' | 'diagnostics' | 'ready' | 'paid';
-
-export interface Job {
-  id: string;
-  bay: string;
-  timeStart: string;
-  timeEnd: string;
-  service: string;
-  vehicle: string;
-  vehicleYear: number;
-  client: string;
-  status: JobStatus;
-  isDelayed: boolean;
-  delayReason?: string;
-}
-
-export interface PartItem {
-  id: string;
+export interface Station {
+  id: number;
+  network: string;
   name: string;
-  sku: string;
-  qty: number;
-  category: string;
-  location?: string;
-  isLowStock: boolean;
-}
-
-export interface ClientData {
-  id: string;
-  name: string;
-  phone: string;
-  visits: number;
-  vehicles: VehicleInfo[];
-  isVip: boolean;
-}
-
-export interface VehicleInfo {
-  make: string;
-  year: number;
-  vin: string;
-  plate: string;
-  inShop: boolean;
-}
-
-export const JOB_STATUS_CONFIG: Record<JobStatus, { label: string; color: string }> = {
-  waiting: { label: 'ОЖИДАНИЕ', color: 'text-steel' },
-  in_progress: { label: 'В РАБОТЕ', color: 'text-primary' },
-  diagnostics: { label: 'ДИАГНОСТИКА', color: 'text-primary' },
-  ready: { label: 'ГОТОВ', color: 'text-stock-green' },
-  paid: { label: 'ОПЛАЧЕН', color: 'text-bleached' },
-};
-
-/* ===== ORDER TRACKER TYPES ===== */
-export type OrderStepStatus = 'done' | 'active' | 'pending';
-
-export interface OrderStep {
-  label: string;
-  detail?: string;
-  date?: string;
-  status: OrderStepStatus;
-}
-
-export interface ClientOrder {
-  id: string;
-  vehicle: string;
-  plate: string;
-  service: string;
-  steps: OrderStep[];
-  estimatedReady?: string;
-}
-
-export type PartsOrderStatus = 'placed' | 'confirmed' | 'shipped' | 'in_transit' | 'delivered';
-
-export interface PartsOrder {
-  id: string;
-  partName: string;
-  sku: string;
-  supplier: string;
-  forVehicle: string;
-  forJob: string;
-  qty: number;
-  price: number;
-  status: PartsOrderStatus;
-  origin: string;
-  destination: string;
-  eta?: string;
-  trackingSteps: OrderStep[];
+  city: string;
+  address: string | null;
+  map_x: number;
+  map_y: number;
+  phone: string | null;
+  fuel_types: string | null;
+  is_verified: boolean;
+  status: FuelStatus;
+  status_confirmed: boolean;
+  status_age: string;
+  reports_count: number;
 }
 
 /* ===== TELEGRAM TYPES ===== */
@@ -127,6 +41,14 @@ declare global {
             username?: string;
           };
         };
+        // Нативный сканер Telegram — предпочтительнее любого самописного
+        // камера-компонента: работает одинаково в iOS/Android/Desktop клиентах.
+        showScanQrPopup?: (
+          params: { text?: string },
+          callback?: (text: string) => boolean | void,
+        ) => void;
+        closeScanQrPopup?: () => void;
+        showPopup?: (params: { title?: string; message: string; buttons?: { id?: string; type?: string; text?: string }[] }) => void;
       };
     };
   }
